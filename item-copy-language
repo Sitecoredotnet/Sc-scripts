@@ -1,0 +1,31 @@
+#=================================================== Prompt Import Dialog =================================
+$dialog1 = Read-Variable -Parameters `
+        @{ Name = "root"; Title="Root"; Source="DataSource=/sitecore/&DatabaseName=master"; editor="item";},
+		@{ Name = "lsource"; Title = "Source Language"; Source="DataSource=/sitecore/system/languages"; Editor="droplist"},
+		@{ Name = "ltarget"; Title = "Target Language"; Source="DataSource=/sitecore/system/languages"; Editor="droplist"} `
+    -Description "This module Copy a language version to another" `
+    -Width 400 -Height 200 `
+    -Title "Copy Language" `
+    -OkButtonName "Copy" `
+    -CancelButtonName "Cancel"
+
+if ($dialog1 -ne "ok") 
+{
+    Exit
+}
+
+
+write-host "====================start copying  item [$($ltarget.Name)] => [$($lsource.Name)] ==================="
+
+#-------- Root item processing -----------
+Add-ItemLanguage $root -Language $lsource.name -TargetLanguage $ltarget.name -IfExist OverwriteLatest  -IgnoredFields "" 
+
+#-------- Descendant item processing ----------
+$listitem = Get-ChildItem $root.Paths.FullPath -Recurse 
+
+foreach($item in $listitem){ 	
+	  Add-ItemLanguage $item -Language $lsource.name -TargetLanguage $ltarget.name -IfExist OverwriteLatest  -IgnoredFields "" 	
+}
+
+write-host "========================Copy finished successfully :)================================="
+  
